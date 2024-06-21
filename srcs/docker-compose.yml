@@ -1,0 +1,54 @@
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    image: mariadb
+    container_name: mariadb
+    env_file: .env
+    volumes:
+      - db-volume:/var/lib/mysql
+    restart: on-failure
+
+  wordpress:
+    build: ./requirements/wordpress
+    image: wordpress
+    container_name: wordpress
+    env_file: .env
+    volumes:
+      - wordpress-volume:/var/www/html
+    depends_on:
+      - mariadb
+    restart: on-failure
+
+  nginx:
+    build: ./requirements/nginx
+    image: nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/moalgafr/project/srcs/requirements/nginx/tools:/etc/nginx/certs/.
+      - wordpress-volume:/var/www/html/
+    depends_on:
+      - wordpress
+    env_file: .env
+    restart: on-failure
+
+volumes:
+  db-volume:
+    name: "mariadb-volume"
+    driver_opts:
+      type: none
+      o: bind
+      device: "/home/moalgafr/data/mariadb"
+  wordpress-volume:
+    name: "wordpress-volume"
+    driver_opts:
+      type: none
+      o: bind
+      device: "/home/moalgafr/data/wordpress"
+
+# 1 more service wordpress
+  # depends on maria-db
+  # check the port in docker-compose if it exposes to the outside
+
